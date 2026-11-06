@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Device Protocol (ADP): Real Devices for AI Agents</title>
+    <meta name="description" content="Open protocol for AI agents to own and use real devices. Signed requests, access approved on the device itself, no cloud in the middle. Fixed operations only.">
+    <link rel="canonical" href="https://agentdevices.org/">
+    <meta name="author" content="Juan Pel&aacute;ez">
+    <meta name="robots" content="index, follow, max-snippet:-1">
+    <meta name="theme-color" content="#f43f5e">
+    <meta name="apple-mobile-web-app-title" content="ADP">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://agentdevices.org/">
+    <meta property="og:title" content="Agent Device Protocol (ADP)">
+    <meta property="og:description" content="An open protocol for AI agents to own and use real devices. Signed, approved on the device itself, with no cloud in the middle.">
+    <meta property="og:site_name" content="Agent Device Protocol">
+    <meta property="og:locale" content="en_US">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@agentmessaging">
+    <meta name="twitter:creator" content="@agentmessaging">
+    <meta name="twitter:title" content="Agent Device Protocol (ADP)">
+    <meta name="twitter:description" content="An open protocol for AI agents to own and use real devices.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📟</text></svg>">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareSourceCode",
+      "name": "Agent Device Protocol",
+      "alternateName": "ADP",
+      "description": "An open protocol for AI agents to own and use real devices. Requests are signed with Ed25519, access is approved on the device itself, and no cloud or relay sits in the middle.",
+      "url": "https://agentdevices.org/",
+      "codeRepository": "https://github.com/agentmessaging/agent-device-protocol",
+      "programmingLanguage": "JavaScript",
+      "runtimePlatform": "Node.js 22 or newer",
+      "license": "https://opensource.org/licenses/MIT",
+      "version": "1",
+      "creativeWorkStatus": "Experimental",
+      "author": {
+        "@type": "Organization",
+        "name": "Agent Messaging",
+        "url": "https://agentmessaging.org",
+        "sameAs": ["https://github.com/agentmessaging", "https://x.com/agentmessaging"]
+      }
+    }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Syne', 'system-ui', 'sans-serif'],
+                        sans: ['DM Sans', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: { 950: '#020617', 900: '#0f172a', 850: '#131c31', 800: '#1e293b' },
+                        rose: { 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48' },
+                        amber: { 400: '#fbbf24', 500: '#f59e0b' }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .gradient-text {
+            background: linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .code-block { background: #0d1117; border: 1px solid #1e293b; border-radius: 8px; overflow-x: auto; }
+        .spec-table { border-collapse: collapse; width: 100%; }
+        .spec-table th { background: #131c31; text-align: left; }
+        .spec-table td, .spec-table th { border: 1px solid #1e293b; padding: 10px 14px; vertical-align: top; }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <nav class="sticky top-0 bg-slate-900/95 backdrop-blur-lg border-b border-slate-800 z-[100]">
+        <div class="max-w-6xl mx-auto px-4 md:px-8">
+            <div class="flex justify-between items-center py-4">
+                <a href="/" class="flex items-center gap-3 text-white no-underline hover:opacity-80">
+                    <span class="text-2xl">📟</span>
+                    <span class="font-display font-bold text-lg md:text-xl tracking-tight">ADP</span>
+                </a>
+                <div class="flex gap-5 xl:gap-8 items-center text-sm tracking-wide">
+                    <a href="#idea" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">THE IDEA</a>
+                    <a href="#rules" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">RULES</a>
+                    <a href="#roles" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">ROLES</a>
+                    <a href="#request" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">REQUESTS</a>
+                    <a href="#capabilities" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">CAPABILITIES</a>
+                    <a href="#documents" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">DOCUMENTS</a>
+                    <a href="#code" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">CODE</a>
+                    <a href="#status" class="hidden lg:inline text-slate-400 no-underline font-medium hover:text-rose-400">STATUS</a>
+                    <a href="https://github.com/agentmessaging/agent-device-protocol" class="px-4 py-2 rounded bg-rose-500 text-slate-900 font-bold text-xs no-underline hover:bg-rose-400">SPEC</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="py-20 md:py-28 px-4 md:px-8">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block px-4 py-1.5 rounded-full bg-rose-500/10 border border-rose-500/30 mb-6">
+                <span class="font-mono text-xs text-rose-400 tracking-widest">ADP v1 EXPERIMENTAL</span>
+            </div>
+            <h1 class="font-display text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                Devices for <span class="gradient-text">AI Agents</span>
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-3xl mx-auto mb-10">
+                An open protocol for AI agents to own and use real devices. A laptop, a camera, a screen in the kitchen: signed, approved on the device itself, and with no cloud in the middle.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#what" class="px-8 py-4 rounded-lg bg-rose-500 text-slate-900 font-bold text-sm tracking-wide hover:bg-rose-400 no-underline">HOW IT WORKS</a>
+                <a href="https://github.com/agentmessaging/agent-device-protocol" class="px-8 py-4 rounded-lg bg-slate-800 text-white font-bold text-sm tracking-wide hover:bg-slate-700 no-underline">GITHUB</a>
+            </div>
+            <p class="text-slate-500 text-xs mt-8">Experimental specification. Companion to AMP (messages), AID (identity), AAP (UI actions) and AFP (files).</p>
+        </div>
+    </header>
+
+    <section id="what" class="py-16 md:py-24 px-4 md:px-8 bg-slate-950/50">
+        <div class="max-w-3xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">WHAT IT IS</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-6 text-center">What is ADP?</h2>
+            <p class="text-slate-400 text-lg mb-4">
+                ADP defines how an AI agent uses a real device: take a picture, listen, show text or an image, speak. The agent's controller signs each request and sends it straight to the device. The device checks the signature, the owner and its local grants before it does anything.
+            </p>
+            <p class="text-slate-400 text-lg">
+                Camera, microphone, speaker and screen output stay off until someone grants them on the device. A device with a camera or microphone shows a sign to people nearby whenever it captures.
+            </p>
+        </div>
+    </section>
+
+    <section id="idea" class="py-16 md:py-24 px-4 md:px-8">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">THE IDEA</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-6 text-center">Agents live in terminals. People live in rooms.</h2>
+            <p class="text-slate-400 text-lg mb-8 text-center">
+                ADP gives an agent a presence in the physical world without handing it the keys to your home.
+            </p>
+<pre class="code-block p-5 text-sm font-mono text-slate-300">agent:   "take a photo with the kitchen device"
+         the agent's controller signs the request and sends it straight to the device
+device:  checks the signature, the owner and the local grant,
+         lights its in-use sign, captures, signs the result
+agent:   gets the picture</pre>
+        </div>
+    </section>
+
+    <section id="rules" class="py-16 md:py-24 px-4 md:px-8 bg-slate-950/50">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">THE RULES</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">Six rules</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">A device is optional</h3>
+                    <p class="text-slate-400 text-sm">An agent with no device is complete. Most agents have none, and they need no device key.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">Many devices, one active</h3>
+                    <p class="text-slate-400 text-sm">An agent can own many devices and is active on at most one. It jumps between them. It never sees through two cameras at once.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">One owner</h3>
+                    <p class="text-slate-400 text-sm">A device has zero or one owner. The device's signed answer is the truth, not anyone's records.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">The person at the device has the last word</h3>
+                    <p class="text-slate-400 text-sm">Camera, microphone and speaker are off until granted there. Ownership changes wait for approval there. A controller cannot turn off the in-use sign.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">No cloud, no relay</h3>
+                    <p class="text-slate-400 text-sm">Device and controller talk directly, signed end to end with Ed25519.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">Fixed operations only</h3>
+                    <p class="text-slate-400 text-sm">No remote shell, no arbitrary files, no remote code. A controller cannot install, change or remove a handler on a device.</p>
+                </div>
+            </div>
+            <p class="text-slate-500 text-sm mt-8 text-center">What ADP does not protect: a controller key is the agent's authority. Any program able to use that key can act as that agent, and a stolen key grants everything approved on the device.</p>
+        </div>
+    </section>
+
+    <section id="roles" class="py-16 md:py-24 px-4 md:px-8">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">ROLES</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">Device and controller</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">Device</h3>
+                    <p class="text-slate-400 text-sm">Owns the hardware and the local grants. Answers signed requests. It decides who its owner is and what is allowed.</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-2">Controller</h3>
+                    <p class="text-slate-400 text-sm">Acts for agents: keys, inventory, the active device, liveness. One process can serve many agents, and it signs for each agent with that agent's own key.</p>
+                </div>
+            </div>
+            <ul class="space-y-3 text-slate-300 text-sm list-disc pl-6 mt-8">
+                <li><span class="text-white font-medium">Pairing is local.</span> The operator pins public keys on both sides before any network use. An unpaired peer cannot enroll itself over HTTP.</li>
+                <li><span class="text-white font-medium">Two ways to connect.</span> A device either answers on HTTP or opens its own WebSocket connection to the controller, which is how a device behind a home router or a phone reaches it. In v1 both run over loopback or a Tailscale path.</li>
+                <li><span class="text-white font-medium">Jumps.</span> A jump replaces the agent's active device at once, and the last accepted jump wins. Old operations are cancelled and their results are not delivered. Sensors, live media and output are refused on an idle device before any request is sent.</li>
+                <li><span class="text-white font-medium">Input from the device.</span> Text typed at a device reaches its owning agent, marked as device input. It never becomes a system instruction, and it does not prove who typed it.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="request" class="py-16 md:py-24 px-4 md:px-8 bg-slate-950/50">
+        <div class="max-w-4xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">HOW A REQUEST WORKS</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">One photo, step by step</h2>
+            <ol class="space-y-3 text-slate-300 text-sm list-decimal pl-6 mb-8">
+                <li>The agent asks its controller for <code class="font-mono text-rose-400">camera.snapshot</code>. The controller checks that the device is the active one and that it advertises the capability.</li>
+                <li>The controller gets a challenge from the device. A challenge works once and expires after 30 seconds.</li>
+                <li>The controller signs the request with the agent's key and posts it.</li>
+                <li>The device verifies the pinned key, the target and the challenge, and uses up the challenge. A retry with the same challenge fails, even after a restart.</li>
+                <li>The device checks the local camera grant, shows its in-use sign, captures, and signs the result.</li>
+                <li>The controller verifies the signature and the matching <code class="font-mono text-rose-400">id</code> and <code class="font-mono text-rose-400">challenge</code>. The agent gets the picture.</li>
+            </ol>
+<pre class="code-block p-5 text-sm font-mono text-slate-300">GET  /v1/challenge
+  -&gt; {"challenge":"&lt;48 hex characters&gt;"}
+
+POST /v1/request
+     {"body":"&lt;base64url&gt;","signature":"&lt;base64url&gt;"}
+     body decodes to:
+     {"type":"invoke","id":"&lt;48 hex&gt;","challenge":"&lt;48 hex&gt;",
+      "to":"&lt;device key&gt;","capability":"camera.snapshot"}
+
+  -&gt; {"body":"&lt;base64url&gt;","signature":"&lt;base64url&gt;"}
+     body decodes to a result with the same id and challenge, to the controller key:
+     {"type":"result","ok":true,
+      "value":{"mime":"image/jpeg","data":"&lt;standard base64&gt;"}}</pre>
+            <p class="text-slate-400 text-sm mt-6">The Ed25519 signature covers the bytes of <code class="font-mono text-rose-400">ai-maestro-device/1</code>, one NUL byte, then the exact body bytes. No key inside a network message counts toward trust. The protocol began inside AI Maestro, and the signature domain is part of the wire format, so that name stays for v1.</p>
+            <p class="text-slate-400 text-sm mt-4">If the device refuses, the signed result has <code class="font-mono text-rose-400">ok:false</code> and an error such as <code class="font-mono text-rose-400">denied</code> or <code class="font-mono text-rose-400">hardware_unavailable</code>. Invalid authentication, expired challenges and malformed packets get HTTP 403.</p>
+        </div>
+    </section>
+
+    <section id="capabilities" class="py-16 md:py-24 px-4 md:px-8">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">CAPABILITIES</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-6 text-center">What a device can offer</h2>
+            <p class="text-slate-400 text-lg max-w-3xl mx-auto mb-10 text-center">
+                A device lists its capabilities in its signed registration. Each one declares its arguments and when it can run. A controller rejects anything undeclared.
+            </p>
+            <div class="overflow-x-auto">
+                <table class="spec-table text-sm">
+                    <thead><tr><th>Capability</th><th>Arguments</th><th>Local grant</th><th>Activation</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-mono text-rose-400">device.health</td><td>Empty object</td><td>Ownership</td><td class="font-mono">any</td></tr>
+                        <tr><td class="font-mono text-rose-400">camera.snapshot</td><td>Empty object</td><td>Camera and working visible indicator</td><td class="font-mono">active</td></tr>
+                        <tr><td class="font-mono text-rose-400">display.text</td><td>Text, up to 4096 UTF-8 bytes</td><td class="font-mono">display.text</td><td class="font-mono">active</td></tr>
+                        <tr><td class="font-mono text-rose-400">display.image</td><td>mime (image/jpeg or image/png), standard base64 data, decoded maximum 256 KiB</td><td class="font-mono">display.image</td><td class="font-mono">active</td></tr>
+                        <tr><td class="font-mono text-rose-400">speaker.say</td><td>Text, up to 500 UTF-8 bytes</td><td class="font-mono">speaker.say</td><td class="font-mono">active</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <ul class="space-y-3 text-slate-300 text-sm list-disc pl-6 mt-8">
+                <li><span class="text-white font-medium">Output is plain.</span> Text is literal text, never HTML or markup. Images must be real PNG or JPEG. SVG, URLs and file paths are refused. Output grants default to off.</li>
+                <li><span class="text-white font-medium">Owner-defined capabilities.</span> The device owner can install actions named <code class="font-mono text-rose-400">custom.OWNER.ACTION</code>. Each has bounded arguments, a timeout and its own local grant, off by default.</li>
+                <li><span class="text-white font-medium">Live media.</span> Video and microphone sessions run from 1 to 60 seconds, and every frame is signed. Video, microphone and speaker each have separate local consent.</li>
+                <li><span class="text-white font-medium">The in-use sign.</span> A device with a camera or microphone must show a sign to people nearby whenever it captures or streams. A hardware light tied to sensor power is preferred, and a visible local screen sign is the minimum. A device that cannot show a working sign must not offer capture.</li>
+                <li><span class="text-white font-medium">Transfer resets grants.</span> When a device changes owner, its media, output and custom grants all reset.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section id="documents" class="py-16 md:py-24 px-4 md:px-8 bg-slate-950/50">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">SPECIFICATION</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">The documents</h2>
+            <div class="overflow-x-auto">
+                <table class="spec-table text-sm">
+                    <thead><tr><th>Document</th><th>What it covers</th></tr></thead>
+                    <tbody>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/v1.md" class="font-mono text-rose-400">protocol/v1.md</a></td><td>The device link: encoding, signing, the exchange, ownership and transfer, media, local approvals.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/controller.md" class="font-mono text-rose-400">protocol/controller.md</a></td><td>The controller role: inventory, the active device, fixed operations, liveness, the SDK contract.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/reverse.md" class="font-mono text-rose-400">protocol/reverse.md</a></td><td>Connections opened by the device: authentication, reconnects, device use and attributed text input.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/capabilities.md" class="font-mono text-rose-400">protocol/capabilities.md</a></td><td>Typed capabilities, owner extensions and the visible capture sign.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/blob/main/docs/controller-sdk.md" class="font-mono text-rose-400">docs/controller-sdk.md</a></td><td>How to implement a controller inside a server, and how to run the conformance suite.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="code" class="py-16 md:py-24 px-4 md:px-8">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">IMPLEMENTATIONS</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">What exists today</h2>
+            <div class="overflow-x-auto">
+                <table class="spec-table text-sm">
+                    <thead><tr><th>Component</th><th>What it is</th></tr></thead>
+                    <tbody>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/tree/main/clients/linux" class="text-rose-400">Linux bridge</a></td><td>The device side: health, camera and audio, text, image and speech output, and owner-installed custom capabilities.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/tree/main/apps/controller" class="text-rose-400">Reference controller</a></td><td>A small CLI and MCP controller with inventory, activation and optional AMP delivery.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/tree/main/packages/sdk" class="text-rose-400">Shared SDK</a></td><td>A controller SDK for one server with many agents, over HTTP and device-opened WebSockets. It ships from the repo, not from a public npm release.</td></tr>
+                        <tr><td><a href="https://github.com/agentmessaging/agent-device-protocol/tree/main/apps/display" class="text-rose-400">Agent display</a></td><td>The screen on the device: agent activity, picture-in-picture, text input, local grants, output and the capture indicator.</td></tr>
+                        <tr><td><a href="https://aimaestro.sh" class="text-rose-400">AI Maestro</a></td><td>A controller in progress. It is implementing the controller role directly in its server, and passes the conformance suite.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-slate-400 text-sm mt-8 mb-3">To check it on one computer, clone the repo, install Node.js 22 or newer, and run the tests. They start a real loopback HTTP bridge, with test adapters for the camera and AMP delivery.</p>
+<pre class="code-block p-5 text-sm font-mono text-slate-300">git clone https://github.com/agentmessaging/agent-device-protocol.git
+cd agent-device-protocol
+npm ci --ignore-scripts
+npm test</pre>
+        </div>
+    </section>
+
+    <section id="status" class="py-16 md:py-24 px-4 md:px-8 bg-slate-950/50">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">STATUS</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-10 text-center">v1, experimental</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-3">In place</h3>
+                    <ul class="space-y-2 text-slate-400 text-sm list-disc pl-5">
+                        <li>The controller role and the SDK</li>
+                        <li>The Linux device bridge</li>
+                        <li>Typed capabilities</li>
+                        <li>Device-opened connections</li>
+                        <li>Local approvals</li>
+                        <li>The conformance suite</li>
+                    </ul>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                    <h3 class="font-display font-bold text-white mb-3">Not done yet</h3>
+                    <ul class="space-y-2 text-slate-400 text-sm list-disc pl-5">
+                        <li>Live media over device-opened connections</li>
+                        <li>macOS devices</li>
+                        <li>Mobile devices</li>
+                        <li>Embedded clients</li>
+                        <li>Hardware acceptance on real camera and audio devices is in progress</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="family" class="py-16 md:py-24 px-4 md:px-8">
+        <div class="max-w-5xl mx-auto">
+            <p class="font-mono text-xs text-rose-400 tracking-widest mb-4 text-center">THE FAMILY</p>
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-6 text-center">Sister protocols</h2>
+            <p class="text-slate-400 text-lg max-w-3xl mx-auto mb-10 text-center">
+                A device names its owner by a full AMP address. AMP delivery itself is optional: a controller can use any delivery mechanism.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <a href="https://agentmessaging.org" class="block bg-slate-900 border border-slate-800 rounded-xl p-6 no-underline hover:border-rose-500/50">
+                    <h3 class="font-display font-bold text-white mb-1">AMP</h3>
+                    <p class="text-slate-400 text-sm mb-3">Messages between agents.</p>
+                    <span class="font-mono text-xs text-rose-400">agentmessaging.org</span>
+                </a>
+                <a href="https://agentids.org" class="block bg-slate-900 border border-slate-800 rounded-xl p-6 no-underline hover:border-rose-500/50">
+                    <h3 class="font-display font-bold text-white mb-1">AID</h3>
+                    <p class="text-slate-400 text-sm mb-3">Identity for agents.</p>
+                    <span class="font-mono text-xs text-rose-400">agentids.org</span>
+                </a>
+                <a href="https://agentactions.org" class="block bg-slate-900 border border-slate-800 rounded-xl p-6 no-underline hover:border-rose-500/50">
+                    <h3 class="font-display font-bold text-white mb-1">AAP</h3>
+                    <p class="text-slate-400 text-sm mb-3">UI actions.</p>
+                    <span class="font-mono text-xs text-rose-400">agentactions.org</span>
+                </a>
+                <a href="https://agentfiles.org" class="block bg-slate-900 border border-slate-800 rounded-xl p-6 no-underline hover:border-rose-500/50">
+                    <h3 class="font-display font-bold text-white mb-1">AFP</h3>
+                    <p class="text-slate-400 text-sm mb-3">Files for agents and people.</p>
+                    <span class="font-mono text-xs text-rose-400">agentfiles.org</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 px-4 md:px-8 text-center bg-slate-950/50">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="font-display text-3xl md:text-4xl font-bold mb-4">Read the <span class="gradient-text">specification</span></h2>
+            <p class="text-slate-400 mb-8">Open protocol. MIT licensed. v1, experimental.</p>
+            <a href="https://github.com/agentmessaging/agent-device-protocol" class="inline-block px-6 sm:px-8 py-4 rounded-lg bg-rose-500 text-slate-900 font-bold text-sm tracking-wide hover:bg-rose-400 no-underline break-words max-w-full">AGENTMESSAGING/AGENT-DEVICE-PROTOCOL</a>
+        </div>
+    </section>
+
+    <footer class="py-12 pb-8 bg-slate-950 border-t border-slate-800 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+                <div>
+                    <div class="flex items-center gap-3 mb-3"><span class="text-2xl">📟</span><span class="font-display font-bold text-lg text-white">ADP</span></div>
+                    <p class="text-slate-400 text-sm">An open protocol for AI agents to own and use real devices.</p>
+                </div>
+                <div>
+                    <h4 class="font-mono text-xs text-slate-500 tracking-widest mb-4">PROTOCOLS</h4>
+                    <a href="https://agentmessaging.org" class="block text-slate-400 no-underline mb-2 hover:text-rose-400 text-sm">AMP: Agent Messaging Protocol</a>
+                    <a href="https://agentids.org" class="block text-slate-400 no-underline mb-2 hover:text-rose-400 text-sm">AID: Agent Identity Protocol</a>
+                    <a href="https://agentactions.org" class="block text-slate-400 no-underline mb-2 hover:text-rose-400 text-sm">AAP: Agent Actions Protocol</a>
+                    <a href="https://agentfiles.org" class="block text-slate-400 no-underline mb-2 hover:text-rose-400 text-sm">AFP: Agent Files Protocol</a>
+                    <a href="https://github.com/agentmessaging/agent-device-protocol" class="block text-slate-400 no-underline mb-2 hover:text-rose-400 text-sm">ADP on GitHub</a>
+                </div>
+                <div>
+                    <h4 class="font-mono text-xs text-slate-500 tracking-widest mb-4">BUILT BY</h4>
+                    <p class="text-slate-400 text-sm mb-2"><span class="text-white">Juan Pel&aacute;ez</span> @ <a href="https://23blocks.com" class="text-white hover:text-rose-400">23blocks</a></p>
+                    <p class="text-slate-500 text-xs mb-2">Controller in progress: <a href="https://aimaestro.sh" class="hover:text-rose-400">AI Maestro</a></p>
+                    <p class="text-slate-500 text-xs"><a href="https://x.com/agentmessaging" class="hover:text-rose-400">@agentmessaging on X</a></p>
+                </div>
+            </div>
+            <div class="pt-6 border-t border-slate-800 text-center">
+                <p class="text-slate-500 text-sm">&copy; 2026 Juan Pel&aacute;ez / 23blocks. MIT License.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

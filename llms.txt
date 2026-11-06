@@ -1,0 +1,59 @@
+# Agent Device Protocol (ADP)
+# https://agentdevices.org/
+
+> ADP is an open protocol for AI agents to own and use real devices: a laptop, a camera, a screen in the kitchen.
+> Requests are signed with Ed25519, access is approved on the device itself, and no cloud or relay sits in the middle.
+
+Status: v1, experimental. Companion to AMP (messages), AID (identity), AAP (UI actions) and AFP (files).
+
+## Rules
+
+- A device is optional. An agent with no device is complete.
+- An agent can own many devices and is active on at most one.
+- A device has zero or one owner. The device's signed answer is the truth.
+- The person at the device has the last word. Camera, microphone and speaker are off until granted there. Ownership changes wait for approval there. A controller cannot turn off the in-use sign.
+- No cloud, no relay. Device and controller talk directly.
+- Fixed operations only. No remote shell, no arbitrary files, no remote code.
+
+## Roles
+
+- Device: owns the hardware and the local grants. Answers signed requests.
+- Controller: acts for agents: keys, inventory, the active device, liveness. One process can serve many agents.
+
+Devices either answer on HTTP or open their own WebSocket connection to the controller.
+
+## Exchange
+
+1. Controller gets a one-use challenge from GET /v1/challenge. It expires after 30 seconds.
+2. Controller signs {type:"invoke",id,challenge,to:deviceKey,capability} and posts it to /v1/request. Discovery uses type "discover".
+3. Device verifies the controller pin, target and challenge, and consumes the challenge.
+4. Device signs a response with the same id and challenge and to:controllerKey. The controller verifies it.
+
+A packet is JSON with two unpadded base64url strings, body and signature. The Ed25519 signature covers the UTF-8 bytes of ai-maestro-device/1, one NUL byte, then the exact body bytes.
+
+## Capabilities
+
+- device.health: empty object. Local grant: ownership. Activation: any.
+- camera.snapshot: empty object. Local grant: camera and working visible indicator. Activation: active.
+- display.text: text, up to 4096 UTF-8 bytes. Local grant: display.text. Activation: active.
+- display.image: mime (image/jpeg or image/png), standard base64 data, decoded maximum 256 KiB. Local grant: display.image. Activation: active.
+- speaker.say: text, up to 500 UTF-8 bytes. Local grant: speaker.say. Activation: active.
+- custom.OWNER.ACTION: installed by the device owner on the device, with an explicit local grant, off by default.
+
+## Not done yet
+
+Live media over device-opened connections. macOS, mobile and embedded devices. Hardware acceptance on real camera and audio devices is in progress.
+
+## Links
+
+- Specification and code: https://github.com/agentmessaging/agent-device-protocol
+- Device link v1: https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/v1.md
+- Controller role: https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/controller.md
+- Device-initiated connections: https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/reverse.md
+- Typed capabilities: https://github.com/agentmessaging/agent-device-protocol/blob/main/protocol/capabilities.md
+- Controller SDK guide: https://github.com/agentmessaging/agent-device-protocol/blob/main/docs/controller-sdk.md
+- AI Maestro: https://aimaestro.sh
+- Agent Messaging Protocol (AMP): https://agentmessaging.org
+- Agent Identity (AID): https://agentids.org
+- Agent Actions Protocol (AAP): https://agentactions.org
+- Agent Files Protocol (AFP): https://agentfiles.org

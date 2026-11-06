@@ -1,0 +1,11 @@
+# Agent Device Protocol (ADP)
+# https://agentdevices.org/
+
+User-agent: *
+Allow: /
+
+Sitemap: https://agentdevices.org/sitemap.xml
+
+# LLM-readable content
+# https://llmstxt.org
+LLMs-txt: https://agentdevices.org/llms.txt

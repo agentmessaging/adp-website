@@ -1,0 +1,10 @@
+{
+  "name": "Agent Device Protocol (ADP)",
+  "short_name": "ADP",
+  "description": "An open protocol for AI agents to own and use real devices",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f43f5e",
+  "icons": []
+}
